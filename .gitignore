@@ -128,3 +128,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+#descartar imagenes de uploads
+uploads/electores/*
+uploads/mesas/*
+uploads/usuarios/*
