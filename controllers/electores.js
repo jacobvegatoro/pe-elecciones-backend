@@ -17,7 +17,7 @@ const getElectores = async (req, res = response) => {
 
 const crearElector = async (req, res = response) => {
 
-    const uid = req.uid;
+    const uid = req.uid; 
     const elector = new Elector({
         usuario: uid,
         ...req.body
@@ -39,18 +39,87 @@ const crearElector = async (req, res = response) => {
     }
 }
 
-const actualizarElector = (req, res = response) => {
-    res.json({
-        ok: true,
-        msg: 'actualizarElector'
-    });
+const actualizarElector = async (req, res = response) => {
+
+    const id = req.params.id;
+    const uid = req.uid;
+
+    try {
+
+        const elector = await Elector.findById( id );
+
+        if ( !elector ){
+            return res.status(404).json({
+                ok: true,
+                msg: 'Elector no encontrado por ID'
+            });
+        }
+
+        // Actualizaciones 
+        const { run, ...campos } = req.body;
+
+        if ( elector.run !== run ) {
+            const existeRun = await Elector.findOne({ run });
+            if ( existeRun ){
+                return res.status(400).json({
+                    ok: false,
+                    msg: 'Ya existe un elector con ese RUN'
+                });
+            }
+        }
+
+        const cambiosElector = {
+            ...req.body,
+            usuario: uid
+        }
+
+        const electorActualizado = await Elector.findByIdAndUpdate( id, cambiosElector, { new: true } );
+
+        res.json({
+            ok: true,
+            msg: 'El elector ha sido actualizado',
+            elector: electorActualizado
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Error al actualizar el elector'
+        });        
+    }
+
 }
 
-const borrarElector = (req, res = response) => {
-    res.json({
-        ok: true,
-        msg: 'borrarElector'
-    });
+const borrarElector = async (req, res = response) => {
+
+    const id = req.params.id;
+
+    try {
+
+        const elector = await Elector.findById( id );
+
+        if ( !elector ){
+            return res.status(404).json({
+                ok: false,
+                msg: 'Elector no encontrado por ID'
+            });
+        }
+
+        await Elector.findByIdAndDelete( id );
+
+        res.json({
+            ok: true,
+            msg: 'El elector ha sido eliminado'
+        });
+    
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Error al eliminar el elector'
+        });
+    }
+
 }
 
 module.exports = {
